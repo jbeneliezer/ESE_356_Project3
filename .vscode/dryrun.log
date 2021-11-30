@@ -1,0 +1,5 @@
+make --dry-run --keep-going --print-directory
+make: Entering directory '/mnt/c/users/jb/documents/repos/ESE_356_project3'
+g++ -I. -I$SYSTEMC_HOME/include -L. -L$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$SYSTEMC_HOME/lib-linux64 -o output *.cpp -lsystemc -lm -g
+make: Leaving directory '/mnt/c/users/jb/documents/repos/ESE_356_project3'
+ 
