@@ -2,6 +2,7 @@
 #define MOBILE_H
 
 #define GAMMA 0
+// #define GAMMA 0.001
 
 #include "systemc.h"
 #include <vector>
