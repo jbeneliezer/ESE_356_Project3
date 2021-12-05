@@ -47,7 +47,7 @@ public:
 	// CONSTRUCTOR
 	SC_HAS_PROCESS(mobile);
 
-	mobile(sc_module_name name, string file_name, vector<vector<roi>> *roi_ptr)
+	mobile(sc_module_name name, string file_name, vector<vector<roi>> &roi_ref)
 	: sc_module(name), data_in("data_in", (server_packet_size)), data_out("data_out", (packet_size * 3))
 	{
 		SC_METHOD(prc_update);
@@ -89,10 +89,10 @@ public:
 		{
 			image_table[i].start_time = -1;
 			image_table[i].index = i + 1;
-			image_table[i].num_of_roi = (*roi_ptr)[i].size();
-			for (int j = 0; j < (*roi_ptr)[i].size(); ++j)
+			image_table[i].num_of_roi = roi_ref[i].size();
+			for (int j = 0; j < roi_ref[i].size(); ++j)
 			{
-				image_table[i].rois[j] = (*roi_ptr)[i][j];
+				image_table[i].rois[j] = roi_ref[i][j];
 			}
 			image_table[i].active = false;
 		}
@@ -193,15 +193,16 @@ private:
 			tx << sc_time_stamp() << ": packet ready from " << this->id << endl;
 			while (transmit_packet_counter > 0) // there are packets to transmit to server
 			{
-				// if (m_network.read() != true) // check if network is free
-				// {
-				// 	wait(GAMMA, SC_MS); // wait for some random time
-				// }
-				// else // if network is free
-				// {
+				if (m_network.read() != true) // check if network is free
+				{
+					wait(rand() * GAMMA, SC_SEC); // wait for some random time
+				}
+				else // if network is free
+				{
 					m_request.write(true);
 					tx << sc_time_stamp() << ": request from " << this->id << " sent." << endl;
-					wait(sc_time(rand() * GAMMA, SC_SEC), m_response.pos());
+					wait((rand() * GAMMA, SC_SEC), m_response.pos());
+					m_request.write(false);
 					if (m_response.read() == 0)
 					{
 						tx << sc_time_stamp() << ": request from " << this->id << " denied." << endl;
@@ -225,8 +226,7 @@ private:
 						}
 						m_packet.write(false);
 					}
-					m_request.write(false);
-				// }
+				}
 			}
 		}
 	}
