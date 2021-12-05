@@ -1,8 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#define SCALE 1
-
 // Case 1
 #define DELTA 0.001
 #define GAMMA 0
@@ -25,8 +23,8 @@
 
 #include "systemc.h"
 #include <vector>
-#include <stdlib.h>		// for srand, rand
-#include <time.h>		// for time
+#include <stdlib.h> // for srand, rand
+#include <time.h>   // for time
 
 using namespace std;
 
@@ -210,7 +208,7 @@ private:
 					wait((sizeof(int))/bandwidth, SC_SEC);
 				}
 			}
-			if (all_of(it1, it1 + num_devices, [it1](vector<vector<vector<int>>>::iterator x){ return x == server_images.end();}))
+			if (all_of(it1, it1 + num_devices, [it1](vector<vector<vector<int>>>::iterator x){ return x == images.end();}))
 			{
 				for (;;)
 			}
