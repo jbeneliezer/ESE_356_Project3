@@ -5,8 +5,9 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
+ 
 
-# Make data base, printed on Mon Nov 22 23:22:09 2021
+# Make data base, printed on Sun Dec  5 00:05:34 2021
 
 # Variables
 
@@ -53,13 +54,13 @@ VSCODE_CWD = /mnt/c/users/jb/AppData/Local/Programs/Microsoft VS Code
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /home/icy/.vscode-server/bin/ccbaa2d27e38e5afa3e5c21c1c7bef4657064247/bin:/home/icy/.nvm/versions/node/v14.18.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program Files/WindowsApps/CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2021.825.0_x64__79rhkp1fndgsc:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/Microchip/xc8/v2.31/bin:/mnt/c/Aldec/Active-HDL-Student-Edition/bin:/mnt/c/Aldec/Active-HDL-Student-Edition_2/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/Geth:/mnt/c/Program Files/MATLAB/R2021a/runtime/win64:/mnt/c/Program Files/MATLAB/R2021a/bin:/mnt/c/Users/jb/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/jb/AppData/Local/Programs/MiKTeX/miktex/bin/x64/:/mnt/c/Users/jb/AppData/Local/Programs/Microsoft VS Code/bin:/snap/bin
+PATH = /home/icy/.vscode-server/bin/ccbaa2d27e38e5afa3e5c21c1c7bef4657064247/bin:/home/icy/.local/bin:/home/icy/.nvm/versions/node/v14.18.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program Files/WindowsApps/CanonicalGroupLimited.Ubuntu20.04onWindows_2004.2021.825.0_x64__79rhkp1fndgsc:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/Microchip/xc8/v2.31/bin:/mnt/c/Aldec/Active-HDL-Student-Edition/bin:/mnt/c/Aldec/Active-HDL-Student-Edition_2/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/Geth:/mnt/c/Program Files/MATLAB/R2021a/runtime/win64:/mnt/c/Program Files/MATLAB/R2021a/bin:/mnt/c/Users/jb/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/jb/AppData/Local/Programs/MiKTeX/miktex/bin/x64/:/mnt/c/Users/jb/AppData/Local/Programs/Microsoft VS Code/bin:/snap/bin
 # environment
 NVM_BIN = /home/icy/.nvm/versions/node/v14.18.0/bin
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-dfbc12c8-bfb0-437a-965f-e544fc30e8b8.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-d000e79f-d6a2-4550-a462-d5829a553502.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -68,8 +69,6 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 %F = $(notdir $%)
 # environment
 DISPLAY = :0
-# environment
-TMUX_PANE = %2
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
@@ -128,8 +127,6 @@ MFLAGS = -pqrR
 NVM_DIR = /home/icy/.nvm
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
-# environment
-TMUX = /tmp/tmux-1000/default,204,2
 # automatic
 +F = $(notdir $+)
 # default
@@ -157,13 +154,13 @@ SYSTEMC_HOME = /home/good/systemc-2.3.3
 # environment
 LANG = C
 # environment
-TERM = screen
+TERM = xterm-256color
 # environment
 VSCODE_EXTHOST_WILL_SEND_SOCKET = true
 # environment
 WSL_DISTRO_NAME = Ubuntu-20.04
 # variable set hash-table stats:
-# Load=76/1024=7%, Rehash=0, Collisions=4/104=4%
+# Load=74/1024=7%, Rehash=0, Collisions=4/102=4%
 
 # Pattern-specific Variable Values
 
@@ -171,9 +168,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 14, inode 21110623253626175): 18 files, no impossibilities.
+# . (device 14, inode 21110623253626175): 20 files, no impossibilities.
 
-# 18 files, no impossibilities in 1 directories.
+# 20 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -207,7 +204,7 @@ all:
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/11=9%
 #  recipe to execute (from 'Makefile', line 2):
-	g++ -I. -I$$SYSTEMC_HOME/include -L. -L$$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$$SYSTEMC_HOME/lib-linux64 -o output *.cpp -lsystemc -lm -g
+	g++ -I. -I$$SYSTEMC_HOME/include -L. -L$$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$$SYSTEMC_HOME/lib-linux64 -o output *.cpp -lsystemc -lm
 
 # Not a target:
 .SUFFIXES:
@@ -218,7 +215,7 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2021-11-22 23:21:29.3727482
+#  Last modified 2021-12-05 00:05:17.7810527
 #  File has been updated.
 #  Successfully updated.
 
@@ -248,12 +245,12 @@ clean:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 24 / storage = 243 B / avg = 10 B
-# current buf: size = 8162 B / used = 243 B / count = 24 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 26 / storage = 286 B / avg = 11 B
+# current buf: size = 8162 B / used = 286 B / count = 26 / avg = 11 B
 
-# strcache performance: lookups = 32 / hit rate = 25%
+# strcache performance: lookups = 34 / hit rate = 23%
 # hash-table stats:
-# Load=24/8192=0%, Rehash=0, Collisions=1/32=3%
-# Finished Make data base on Mon Nov 22 23:22:09 2021
+# Load=26/8192=0%, Rehash=0, Collisions=1/34=3%
+# Finished Make data base on Sun Dec  5 00:05:34 2021
 
  

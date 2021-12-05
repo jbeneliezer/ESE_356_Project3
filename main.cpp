@@ -5,18 +5,19 @@
 #include "systemc.h"
 #include <string>
 
-#define CLOCK_FREQUENCY 10
-#define IMAGE_SIZE_X 1024
-#define IMAGE_SIZE_Y 1024
-#define PACKET_SIZE 20
-#define FIFO_SIZE 16
-#define NUM_DEVICES 3
+#define CLOCK_PERIOD 10
+#define BANDWIDTH int(512e3)
+// #define BANDWIDTH int(10e6)
+#define IMAGE_SIZE_X 1024			// image width
+#define IMAGE_SIZE_Y 1024			// image height
+#define PACKET_SIZE 20				// number of tuples in packet
+#define NUM_DEVICES 3				// number of devices on network
+#define NUM_IMAGES 5				// number of images
+#define SERVER_PACKET_SIZE 200		// number of pixels in packet sent to mobile
 
 using namespace std;
 
-packet transfer_packet;
-
-vector<vector<roi>> images =
+vector<vector<roi>> rois =
 	{{{1, {50, 20}, {400, 320}},
 	  {2, {50, 370}, {450, 1000}},
 	  {3, {470, 20}, {600, 900}},
@@ -45,7 +46,6 @@ vector<vector<roi>> images =
 	  {6, {10, 710}, {1000, 860}},
 	  {7, {10, 870}, {1000, 1010}}}};
 
-	  
 
 template <int program_size>
 class stimulus : public sc_module
@@ -70,25 +70,12 @@ public:
 		{
 			// switch_image.notify(10, SC_SEC);
 			clock = 1;
-			wait(CLOCK_FREQUENCY/2, SC_MS);
+			wait(CLOCK_PERIOD/2, SC_MS);
 			clock = 0;
-			wait(CLOCK_FREQUENCY/2, SC_MS);
+			wait(CLOCK_PERIOD/2, SC_MS);
 		}
 	}
 
-// 	void prc_image()
-// 	{
-// 		while (true)
-// 		{
-// 			for (int i = 0; i < images.size(); ++i)
-// 			{
-// 				img_ptr.write(&images[i]);
-// 				wait(switch_image);
-// 			}
-// 		}
-// 	}
-// private:
-// 	sc_event switch_image;
 };
 
 int sc_main(int argc, char *argv[])
@@ -96,58 +83,47 @@ int sc_main(int argc, char *argv[])
 
 	// SIGNALS
 	sc_signal<bool> clock;
-	sc_signal<int> x[NUM_DEVICES], y[NUM_DEVICES]; // coordinates
+	sc_signal<int> image_index[num_devices];
 
 	// NETWORK SIGNALS
 	sc_signal<bool> m_network;
 	sc_signal<bool> m_request[NUM_DEVICES], m_packet[NUM_DEVICES], m_response[NUM_DEVICES];
 
+	sc_vector<sc_fifo<int> > mobile_to_server(NUM_DEVICES, sc_fifo<int>(PACKET_SIZE * 3)), server_to_mobile(NUM_DEVICES, sc_fifo<int>(SERVER_PACKET_SIZE));
+
 	// MODULES
-	mobile mobile1("mobile1", "input2.txt");
-	mobile mobile2("mobile2", "input2.txt");
-	mobile mobile3("mobile3", "input2.txt");
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile1("mobile1", "input1.txt", &rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile2("mobile2", "input1.txt", &rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile3("mobile3", "input1.txt", &rois);
 
 	mobile1.clock(clock);
-	mobile1.x(x[0]);
-	mobile1.y(y[0]);
+	mobile1.image_index(image_index[0]);
+	mobile1.m_network(m_network);
+	mobile1.m_request(m_request[0]);
+	mobile1.m_packet(m_packet[0]);
+	mobile1.m_response(m_response[0]);
+	mobile1.data_in(server_to_mobile[0]);
+	mobile1.data_out(mobile_to_server[0]);
 
 	mobile2.clock(clock);
-	mobile2.x(x[1]);
-	mobile2.y(y[1]);
+	mobile2.image_index(image_index[1]);
+	mobile2.m_network(m_network);
+	mobile2.m_request(m_request[1]);
+	mobile2.m_packet(m_packet[1]);
+	mobile2.m_response(m_response[1]);
+	mobile2.data_in(server_to_mobile[1]);
+	mobile2.data_out(mobile_to_server[1]);
 
 	mobile3.clock(clock);
-	mobile3.x(x[2]);
-	mobile3.y(y[2]);
+	mobile3.image_index(image_index[1]);
+	mobile3.m_network(m_network);
+	mobile3.m_request(m_request[1]);
+	mobile3.m_packet(m_packet[1]);
+	mobile3.m_response(m_response[1]);
+	mobile3.data_in(server_to_mobile[1]);
+	mobile3.data_out(mobile_to_server[1]);
 
-	processing<IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE> processing1("processing1", &images[0]);
-	processing<IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE> processing2("processing2", &images[0]);
-	processing<IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE> processing3("processing3", &images[0]);
-
-	processing1.clock(clock);
-	processing1.x(x[0]);
-	processing1.y(y[0]);
-	processing1.m_request(m_request[0]);
-	processing1.m_packet(m_packet[0]);
-	processing1.m_response(m_response[0]);
-	processing1.m_network(m_network);
-
-	processing2.clock(clock);
-	processing2.x(x[1]);
-	processing2.y(y[1]);
-	processing2.m_request(m_request[1]);
-	processing2.m_packet(m_packet[1]);
-	processing2.m_response(m_response[1]);
-	processing2.m_network(m_network);
-
-	processing3.clock(clock);
-	processing3.x(x[2]);
-	processing3.y(y[2]);
-	processing3.m_request(m_request[2]);
-	processing3.m_packet(m_packet[2]);
-	processing3.m_response(m_response[2]);
-	processing3.m_network(m_network);
-
-	server<IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, NUM_DEVICES> server("server");
+	server<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, NUM_DEVICES, BANDWIDTH> server("server");
 	server.clock(clock);
 	server.m_network(m_network);
 	for (int i = 0; i < NUM_DEVICES; ++i)
@@ -159,6 +135,10 @@ int sc_main(int argc, char *argv[])
 
 	stimulus<2400> stimulus("stim");
 	stimulus.clock(clock);
+
+
+	// set time units
+	sc_set_default_time_unit(1, SC_MS);
 
 	// TRACES
 	sc_trace_file *tf = sc_create_vcd_trace_file("sim_trace");
