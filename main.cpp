@@ -59,7 +59,6 @@ public:
 	stimulus(sc_module_name name) : sc_module(name)
 	{
 		SC_THREAD(main);
-		// SC_THREAD(prc_image);
 	}
 
 	// PROCESS
@@ -67,7 +66,6 @@ public:
 	{
 		for (int i = 0; i < program_size * 10; ++i)
 		{
-			// switch_image.notify(10, SC_SEC);
 			clock = 1;
 			wait(CLOCK_PERIOD/2, SC_MS);
 			clock = 0;
@@ -91,9 +89,9 @@ int sc_main(int argc, char *argv[])
 	sc_vector<sc_fifo<int> > mobile_to_server(NUM_DEVICES, sc_fifo<int>(PACKET_SIZE * 3)), server_to_mobile(NUM_DEVICES, sc_fifo<int>(SERVER_PACKET_SIZE));
 
 	// MODULES
-	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile1("mobile1", "input1.txt", &rois);
-	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile2("mobile2", "input1.txt", &rois);
-	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile3("mobile3", "input1.txt", &rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile1("mobile1", "input1.txt", rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile2("mobile2", "input1.txt", rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile3("mobile3", "input1.txt", rois);
 
 	mobile1.clock(clock);
 	mobile1.image_index(image_index[0]);
@@ -134,7 +132,6 @@ int sc_main(int argc, char *argv[])
 
 	stimulus<2400> stimulus("stim");
 	stimulus.clock(clock);
-
 
 	// set time units
 	sc_set_default_time_unit(1, SC_MS);
