@@ -104,9 +104,6 @@ private:
 	// TIMES
 	vector<int> times = {IMAGE_1, IMAGE_2, IMAGE_3, IMAGE_4, IMAGE_5};
 
-	// EVENTS
-	sc_event mobile_time;
-
 	void prc_update()
 	{
 		for(;;)
@@ -138,8 +135,11 @@ private:
 				}
 			}
 
+			// open network to mobile devices
 			m_network.write(true);
 			wait((DELTA + (1 - weighted_average), SC_SEC));
+			
+			// server time
 			m_network.write(false);
 			wait((DELTA + weighted_average), SC_SEC);
 			
@@ -194,7 +194,7 @@ private:
 						{
 							if (it1[i] == server_images.end())										// all images read
 							{
-								break;
+								continue;
 							} else {
 								++it1[i];
 								it2[i] = it1[i]->begin();
@@ -206,14 +206,17 @@ private:
 						}
 					}
 					wait((sizeof(int))/bandwidth, SC_SEC);
+				} else {
+					wait(DELTA, SC_SEC);
 				}
 			}
-			if (all_of(it1, it1 + num_devices, [it1](vector<vector<vector<int>>>::iterator x){ return x == images.end();}))
+			bool finished = false;
+			for (auto& i: it1)
 			{
-				for (;;)
+				finished = finished | (i != server_images.end());
 			}
+			if (finished) for (;;)
 		}
-
 
 	}
 
