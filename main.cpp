@@ -1,8 +1,6 @@
 #include "server.cpp"
 #include "mobile.cpp"
 
-#include "systemc.h"
-#include <string>
 
 #define CLOCK_PERIOD 10
 #define BANDWIDTH int(512e3)
@@ -13,6 +11,9 @@
 #define NUM_DEVICES 3				// number of devices on network
 #define NUM_IMAGES 5				// number of images
 #define SERVER_PACKET_SIZE 200		// number of pixels in packet sent to mobile
+
+#include "systemc.h"
+#include <string>
 
 using namespace std;
 
@@ -64,7 +65,7 @@ public:
 	// PROCESS
 	void main()
 	{
-		for (int i = 0; i < program_size * 10; ++i)
+		for (int i = 0; i < program_size * CLOCK_PERIOD; ++i)
 		{
 			clock = 1;
 			wait(CLOCK_PERIOD/2, SC_MS);
@@ -76,25 +77,25 @@ public:
 };
 
 int sc_main(int argc, char *argv[])
-{			
-
+{	
 	// SIGNALS
 	sc_signal<bool> clock;
-	sc_signal<int> image_index[num_devices];
+	sc_signal<int> image_index;
 
 	// NETWORK SIGNALS
 	sc_signal<bool> m_network;
 	sc_signal<bool> m_request[NUM_DEVICES], m_packet[NUM_DEVICES], m_response[NUM_DEVICES];
 
-	sc_vector<sc_fifo<int> > mobile_to_server(NUM_DEVICES, sc_fifo<int>(PACKET_SIZE * 3)), server_to_mobile(NUM_DEVICES, sc_fifo<int>(SERVER_PACKET_SIZE));
+	sc_fifo<int> mobile_to_server[NUM_DEVICES];
+	sc_fifo<int> server_to_mobile[NUM_DEVICES];
 
 	// MODULES
-	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile1("mobile1", "input1.txt", rois);
-	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile2("mobile2", "input1.txt", rois);
-	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH>> mobile3("mobile3", "input1.txt", rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH> mobile1("mobile1", "input1.txt", rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH> mobile2("mobile2", "input1.txt", rois);
+	mobile<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, CLOCK_PERIOD, BANDWIDTH> mobile3("mobile3", "input1.txt", rois);
 
 	mobile1.clock(clock);
-	mobile1.image_index(image_index[0]);
+	mobile1.image_index(image_index);
 	mobile1.m_network(m_network);
 	mobile1.m_request(m_request[0]);
 	mobile1.m_packet(m_packet[0]);
@@ -103,7 +104,7 @@ int sc_main(int argc, char *argv[])
 	mobile1.data_out(mobile_to_server[0]);
 
 	mobile2.clock(clock);
-	mobile2.image_index(image_index[1]);
+	mobile2.image_index(image_index);
 	mobile2.m_network(m_network);
 	mobile2.m_request(m_request[1]);
 	mobile2.m_packet(m_packet[1]);
@@ -112,29 +113,29 @@ int sc_main(int argc, char *argv[])
 	mobile2.data_out(mobile_to_server[1]);
 
 	mobile3.clock(clock);
-	mobile3.image_index(image_index[1]);
+	mobile3.image_index(image_index);
 	mobile3.m_network(m_network);
-	mobile3.m_request(m_request[1]);
-	mobile3.m_packet(m_packet[1]);
-	mobile3.m_response(m_response[1]);
-	mobile3.data_in(server_to_mobile[1]);
-	mobile3.data_out(mobile_to_server[1]);
+	mobile3.m_request(m_request[2]);
+	mobile3.m_packet(m_packet[2]);
+	mobile3.m_response(m_response[2]);
+	mobile3.data_in(server_to_mobile[2]);
+	mobile3.data_out(mobile_to_server[2]);
 
 	server<NUM_IMAGES, IMAGE_SIZE_X, IMAGE_SIZE_Y, PACKET_SIZE, SERVER_PACKET_SIZE, NUM_DEVICES, BANDWIDTH> server("server");
 	server.clock(clock);
+	server.image_index(image_index);
 	server.m_network(m_network);
 	for (int i = 0; i < NUM_DEVICES; ++i)
 	{
 		server.m_request[i](m_request[i]);
 		server.m_packet[i](m_packet[i]);
 		server.m_response[i](m_response[i]);
+		server.data_in[i](mobile_to_server[i]);
+		server.data_out[i](server_to_mobile[i]);
 	}
 
-	stimulus<2400> stimulus("stim");
+	stimulus<40000> stimulus("stim");
 	stimulus.clock(clock);
-
-	// set time units
-	sc_set_default_time_unit(1, SC_MS);
 
 	// TRACES
 	sc_trace_file *tf = sc_create_vcd_trace_file("sim_trace");
@@ -142,14 +143,15 @@ int sc_main(int argc, char *argv[])
 	sc_trace(tf, m_network, "m_network");
 	for (int i = 0; i < NUM_DEVICES; ++i)
 	{
-		sc_trace(tf, m_request[i], "m_request " + to_string(i + 1));
-		sc_trace(tf, m_response[i], "m_response " + to_string(i + 1));
-		sc_trace(tf, m_packet[i], "m_packet " + to_string(i + 1));
+		sc_trace(tf, m_request[i], "m_request");
+		sc_trace(tf, m_response[i], "m_response");
+		sc_trace(tf, m_packet[i], "m_packet");
 	}
 
 	// START SIM
-	sc_start(24000, SC_MS);
+	sc_start(400000, SC_MS);
 	sc_close_vcd_trace_file(tf);
+
 	cout << "Sim stopped at " << sc_time_stamp() << endl;
 
 	return 0;

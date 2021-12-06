@@ -1,7 +1,7 @@
 #ifndef MOBILE_H
 #define MOBILE_H
 
-#define GAMMA 0
+#define GAMMA 0.001
 // #define GAMMA 0.001
 
 #include "systemc.h"
@@ -23,7 +23,7 @@ typedef struct
 	int index;
 	int start_time;
 	int num_of_roi;
-	vector<roi> rois(num_of_roi);
+	vector<roi> rois = vector<roi>(num_of_roi);
 	bool active;
 } image;
 
@@ -49,13 +49,15 @@ public:
 	SC_HAS_PROCESS(mobile);
 
 	mobile(sc_module_name name, string file_name, vector<vector<roi>> &roi_ref)
-	: sc_module(name), data_in("data_in", (server_packet_size)), data_out("data_out", (packet_size * 3))
+	: sc_module(name)
 	{
 		SC_METHOD(prc_update);
 		sensitive << clock.pos();
 
 		SC_THREAD(prc_tx);
 		sensitive << m_network.pos() << m_response.pos();
+
+		SC_THREAD(prc_rx);
 
 		SC_METHOD(prc_input);
 		sensitive << clock.pos();
@@ -83,67 +85,78 @@ public:
 			exit(1);
 		}
 		fin.close();
-		input_ptr = coordinates.begin();
+		input_it = coordinates.begin();
 
 		// set up image table
-		for (int i = 0; i < num_images, ++i)
+		image_table = vector<image>(num_images);
+		for (int i = 0; i < num_images; ++i)
 		{
 			image_table[i].start_time = -1;
 			image_table[i].index = i + 1;
 			image_table[i].num_of_roi = roi_ref[i].size();
 			for (int j = 0; j < roi_ref[i].size(); ++j)
 			{
-				image_table[i].rois[j] = roi_ref[i][j];
+				image_table[i].rois.push_back(roi_ref[i][j]);
 			}
 			image_table[i].active = false;
 		}
 
+		// set up packets
+		packets = vector<packet>(1, packet(1));
+
 		// set up server image read
+		server_images = vector<vector<vector<int> > >(num_images, vector<vector<int> >(image_size_x, vector<int>(image_size_y)));
 		it1 = server_images.begin();
 		it2 = it1->begin();
 		it3 = it2->begin();
 
 		srand(time(0));
+
+		receive_packet_counter = 0;
 	}
 
 private:
 	// LOCAL VAR
+	string id;
+
 	// ROI HANDLING
-	vector<image> image_table(num_images);
+	vector<image> image_table;
 
 	// INPUT HANDLING
 	ifstream fin;
 	string str;
 	int x, y;
-	vector<pair<int, int>> coordinates = vector<pair<int, int>>(), *input_ptr;
+	vector<pair<int, int>> coordinates = vector<pair<int, int>>() ;
+	vector<pair<int, int>>::iterator input_it;
 
 	// NETWORK HANDLING
 	int transmit_packet_counter, tuple_counter, time_index;
 	sc_event packet_ready;
-	vector<packet> packets = vector<packet>(1, packet(1));
+	vector<packet> packets;
 	ofstream tx;
 
 	// IMAGE HANDLING
-	vector<vector<vector<int> > > server_images(num_images, vector<vector<int> >(image_size_x, vector<int>(image_size_y)));
+	vector<vector<vector<int> > > server_images;
 	vector<vector<vector<int> > >::iterator it1;
 	vector<vector<int> >::iterator it2;
 	vector<int>::iterator it3;
+	int receive_packet_counter;
 
 	// PROCESSES
 	// read data, update packets
 	void prc_update()
 	{
-		while (image_table[image_index.read()].active == false)
-		{
-			//time_index += clock_period;
-			return;
-		}
+		if (sc_time_stamp().to_seconds() >= 390) tx.close();
+		// while (image_table[image_index.read()].active == false)
+		// {
+		// 	return;
+		// }
 		if (image_table[image_index.read()].start_time == -1) image_table[image_index.read()].start_time = time_index;		// set image start time
 		// cout << sc_time_stamp() << ": " << this->id << ": (" << x.read() << ", " << y.read() << ")" << endl;
 		for (auto &i : image_table[image_index.read()].rois) // iterate over rois
 		{
-			// cout << "(" << i.start[0] << ", " << i.start[1] << ") -> (" << i.end[0] << ", " << i.end[1] << ")" << endl;
-			if (get<0>(*input_ptr) >= i.start[0] && get<0>(*input_ptr) <= i.end[0] && get<1>(*input_ptr) >= i.start[1] && get<1>(*input_ptr) <= i.end[1]) // (x, y) is in roi
+			// cout << "(" << get<0>(*input_it) << ", " << get<1>(*input_it) << ")" << endl;
+			if (get<0>(*input_it) >= i.start[0] && get<0>(*input_it) <= i.end[0] && get<1>(*input_it) >= i.start[1] && get<1>(*input_it) <= i.end[1]) // (x, y) is in roi
 			{
 				if (get<0>(packets[transmit_packet_counter][tuple_counter]) == 0)
 				{
@@ -169,7 +182,7 @@ private:
 				break;
 			}
 		}
-		//time_index += clock_period;
+
 		if (transmit_packet_counter > 0)
 			packet_ready.notify();
 
@@ -188,7 +201,7 @@ private:
 	{
 		m_request.write(false);
 		m_packet.write(false);
-		while (true) // infinite loop
+		for (;;) // infinite loop
 		{
 			wait(packet_ready); // initiated by prc_update()
 			tx << sc_time_stamp() << ": packet ready from " << this->id << endl;
@@ -196,18 +209,18 @@ private:
 			{
 				if (m_network.read() != true) // check if network is free
 				{
-					wait(rand() * GAMMA, SC_SEC); // wait for some random time
+					wait(rand() % 10 + GAMMA, SC_MS); // wait for some random time
 				}
 				else // if network is free
 				{
 					m_request.write(true);
 					tx << sc_time_stamp() << ": request from " << this->id << " sent." << endl;
-					wait((rand() * GAMMA, SC_SEC), m_response.pos());
+					wait();
 					m_request.write(false);
 					if (m_response.read() == 0)
 					{
 						tx << sc_time_stamp() << ": request from " << this->id << " denied." << endl;
-						wait(rand() * GAMMA, SC_SEC);
+						wait(rand() % 10 + GAMMA, SC_MS);
 					}
 					else
 					{
@@ -235,44 +248,55 @@ private:
 	// receive data from server
 	void prc_rx()
 	{
+
+		int num_sent = 0, ind = 0;
 		for (;;)
 		{
 			wait(data_in.data_written_event());
-			while(data_in.num_available > 0)
+			while(data_in.num_available() > 0)
 			{
-				*it3++ = data_in.read();
-				if (it3 == it2->end())													// line is complete
+				int tmp;
+				if (data_in.nb_read(tmp))
 				{
-					if (it2 == it1->end())												// image is complete
+					num_sent++;
+					if (num_sent > image_size_x * image_size_y)
 					{
-						image_table[distance(server_image.begin(), it1)].active = true;
-						if (it1 == server_images.end())									// all images read
-						{
-							for(;;)
-						} else {
-							++it1;
-							it2 = it1->begin();
-							it3 = it2->begin();
-						}
-					} else {
-						++it2;															// next line
-						it3 = it2->begin();
+						cout << "received image " << ind << endl;
+						image_table[ind++].active = true;
+						num_sent -= (image_size_x * image_size_y);
 					}
-				}
+				}	
 			}
+				// if (it3 == it2->end())													// line is complete
+				// {
+				// 	if (it2 == it1->end())												// image is complete
+				// 	{
+				// 		image_table[distance(server_images.begin(), it1)].active = true;
+				// 		if (it1 == server_images.end())									// all images read
+				// 		{
+				// 			for(;;);
+				// 		} else {
+				// 			++it1;
+				// 			it2 = it1->begin();
+				// 			it3 = it2->begin();
+				// 		}
+				// 	} else {
+				// 		++it2;															// next line
+				// 		it3 = it2->begin();
+				// 	}
+				// }
+			
 		
 		}
 	}
 
-	// increment input pointer
+	// increment input iterator
 	void prc_input()
 	{
-		if (input_ptr != prev(coordinates.end())) input_ptr = next(input_ptr);
+		if (input_it != prev(coordinates.end())) input_it = next(input_it);
+		else input_it = coordinates.begin();
 	}
 
-	// void print_stat()
-	// {
-	// }
 };
 
 #endif /* MOBILE_H */

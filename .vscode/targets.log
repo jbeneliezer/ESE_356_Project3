@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # There is NO WARRANTY, to the extent permitted by law.
  
 
-# Make data base, printed on Sun Dec  5 00:05:34 2021
+# Make data base, printed on Sun Dec  5 21:45:17 2021
 
 # Variables
 
@@ -60,7 +60,7 @@ NVM_BIN = /home/icy/.nvm/versions/node/v14.18.0/bin
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-d000e79f-d6a2-4550-a462-d5829a553502.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-b5072c08-7c82-451e-afdf-c00444b01ebb.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -168,9 +168,9 @@ WSL_DISTRO_NAME = Ubuntu-20.04
 
 # Directories
 
-# . (device 14, inode 21110623253626175): 20 files, no impossibilities.
+# . (device 14, inode 21110623253626175): 19 files, no impossibilities.
 
-# 20 files, no impossibilities in 1 directories.
+# 19 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -204,7 +204,7 @@ all:
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/11=9%
 #  recipe to execute (from 'Makefile', line 2):
-	g++ -I. -I$$SYSTEMC_HOME/include -L. -L$$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$$SYSTEMC_HOME/lib-linux64 -o output *.cpp -lsystemc -lm
+	g++ -I. -I$$SYSTEMC_HOME/include -L. -L$$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$$SYSTEMC_HOME/lib-linux64 -o output *.cpp -lsystemc -lm -g
 
 # Not a target:
 .SUFFIXES:
@@ -215,7 +215,7 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2021-12-05 00:05:17.7810527
+#  Last modified 2021-12-05 21:44:50.3434848
 #  File has been updated.
 #  Successfully updated.
 
@@ -232,9 +232,9 @@ clean:
 #  recipe to execute (from 'Makefile', line 4):
 	rm output
 	rm rx.txt
-	rm processing1.txt
-	rm processing2.txt
-	rm  processing3.txt
+	rm mobile1.txt
+	rm mobile2.txt
+	rm mobile3.txt
 	rm *.vcd
 
 # files hash-table stats:
@@ -245,12 +245,12 @@ clean:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 26 / storage = 286 B / avg = 11 B
-# current buf: size = 8162 B / used = 286 B / count = 26 / avg = 11 B
+# strcache buffers: 1 (0) / strings = 25 / storage = 259 B / avg = 10 B
+# current buf: size = 8162 B / used = 259 B / count = 25 / avg = 10 B
 
-# strcache performance: lookups = 34 / hit rate = 23%
+# strcache performance: lookups = 33 / hit rate = 24%
 # hash-table stats:
-# Load=26/8192=0%, Rehash=0, Collisions=1/34=3%
-# Finished Make data base on Sun Dec  5 00:05:34 2021
+# Load=25/8192=0%, Rehash=0, Collisions=1/33=3%
+# Finished Make data base on Sun Dec  5 21:45:17 2021
 
  

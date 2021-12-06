@@ -1,0 +1,3 @@
+28520 ms: packet ready from mobile2
+310000571 us: request from mobile2 sent.
+310000571 us: request from mobile2 accepted.
